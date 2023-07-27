@@ -1,0 +1,99 @@
+version: "3.8"
+services:
+
+  redis1:
+    build:
+      context: build/ubuntu-base
+    image: docker-redis-ubuntu-base
+    container_name: ${COMPOSE_PROJECT_NAME}_redis1
+    privileged: true
+#    command: sleep infinity
+    volumes:
+      # force local timezone
+      - "/etc/timezone:/etc/timezone:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+      - "./data/redis/redis1.conf:/etc/redis/redis.conf"
+    ports:
+      - "6371:6379"
+
+  redis2:
+    image: docker-redis-ubuntu-base
+    container_name: ${COMPOSE_PROJECT_NAME}_redis2
+    privileged: true
+#    command: sleep infinity
+    volumes:
+      # force local timezone
+      - "/etc/timezone:/etc/timezone:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+      - "./data/redis/redis2.conf:/etc/redis/redis.conf"
+    ports:
+      - "6372:6379"
+    depends_on:
+      - redis1
+
+  redis3:
+    image: docker-redis-ubuntu-base
+    container_name: ${COMPOSE_PROJECT_NAME}_redis3
+    privileged: true
+#    command: sleep infinity
+    volumes:
+      # force local timezone
+      - "/etc/timezone:/etc/timezone:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+      - "./data/redis/redis2.conf:/etc/redis/redis.conf"
+    ports:
+      - "6373:6379"
+    depends_on:
+      - redis2
+
+  sentinel1:
+    image: docker-redis-ubuntu-base
+    container_name: ${COMPOSE_PROJECT_NAME}_sentinel1
+    privileged: true
+#    command: sleep infinity
+    volumes:
+      # force local timezone
+      - "/etc/timezone:/etc/timezone:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+      - "./data/sentinel/sentinel1:/etc/redis"
+    ports:
+      - "2631:26379"
+
+  sentinel2:
+    image: docker-redis-ubuntu-base
+    container_name: ${COMPOSE_PROJECT_NAME}_sentinel2
+    privileged: true
+#    command: sleep infinity
+    volumes:
+      # force local timezone
+      - "/etc/timezone:/etc/timezone:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+      - "./data/sentinel/sentinel2:/etc/redis"
+    ports:
+      - "2632:26379"
+    depends_on:
+      - redis1
+
+  sentinel3:
+    image: docker-redis-ubuntu-base
+    container_name: ${COMPOSE_PROJECT_NAME}_sentinel3
+    privileged: true
+#    command: sleep infinity
+    volumes:
+      # force local timezone
+      - "/etc/timezone:/etc/timezone:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+      - "./data/sentinel/sentinel3:/etc/redis"
+    ports:
+      - "26373:26379"
+    depends_on:
+      - redis2
+
+  redisinsight:
+    image: redislabs/redisinsight:latest
+    ports:
+      - '8001:8001'
+    volumes:
+      - "./data/redis_insight/db:/db"
+    depends_on:
+      - sentinel3
